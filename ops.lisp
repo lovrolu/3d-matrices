@@ -455,7 +455,22 @@
                 (* (e 0 1) (e 1 3) (e 2 0) (e 3 2)) (* (e 0 3) (e 1 0) (e 2 1) (e 3 2))
                 (* (e 0 0) (e 1 1) (e 2 3) (e 3 2)) (* (e 0 2) (e 1 1) (e 2 0) (e 3 3))
                 (* (e 0 0) (e 1 2) (e 2 1) (e 3 3)) (* (e 0 1) (e 1 0) (e 2 2) (e 3 3)))))
-    (matn (multiple-value-bind (LU P s) (mlu m)
+    (matn #+(and)
+          (let ((r (%rows m))
+                (c (%cols m)))
+            (unless (= r c)
+              (error "Matrix is not square"))
+            (if (= r 2)
+                (with-fast-matref (e m c)
+                  (- (* (e 0 0) (e 1 1))
+                     (* (e 0 1) (e 1 0))))
+                (loop :for j :from 0 :below c
+                      :with det = 0.0
+                      :for inc = (* (mcref m 0 j) (mcofactor m 0 j))
+                      :do (incf det inc)
+                      :finally (return det))))
+          #+nil
+          (multiple-value-bind (LU P s) (mlu m)
             (declare (ignore P))
             (with-fast-matref (lu LU (%rows LU))
               (loop for det = #.(ensure-float 1) then (* (expt -1.0 (the integer s))

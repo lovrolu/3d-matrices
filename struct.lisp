@@ -181,26 +181,14 @@
   (check-type r mat-dim)
   (check-type c mat-dim)
   (let ((arr (%proper-array (* r c) elements)))
-    (if (= r c)
-        (case r
-          (2 (%mat2 arr))
-          (3 (%mat3 arr))
-          (4 (%mat4 arr))
-          (T (%matn r r arr)))
-        (%matn r c arr))))
+    (%matn r c arr)))
 
 (define-compiler-macro matn (&whole whole &environment env r c &optional elements)
   (cond ((constantp elements env)
          (let ((arr (gensym "ARR")) (rows (gensym "ROWS")) (cols (gensym "COLS")))
            `(let ((,arr ,(%proper-array-form `(* ,c ,r) elements))
                   (,rows ,r) (,cols ,c))
-              (if (= ,rows ,cols)
-                  (case ,rows
-                    (2 (%mat2 ,arr))
-                    (3 (%mat3 ,arr))
-                    (4 (%mat4 ,arr))
-                    (T (%matn ,rows ,rows ,arr)))
-                  (%matn ,rows ,cols ,arr)))))
+              (%matn ,rows ,cols ,arr))))
         (T whole)))
 
 (declaim (inline mcopyn))
